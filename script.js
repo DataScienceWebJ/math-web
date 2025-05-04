@@ -1,10 +1,3 @@
-function switchTab(tabName) {
-  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-  document.getElementById(tabName).classList.add('active');
-  document.querySelector(`.tab[onclick*="${tabName}"]`).classList.add('active');
-}
-
 function evaluateCalc() {
   const input = document.getElementById('calcInput').value;
   try {
@@ -17,10 +10,10 @@ function evaluateCalc() {
 
 function plotFunction() {
   const expr = document.getElementById('graphFunc').value;
-  const xMin = parseFloat(document.getElementById('xMin').value);
-  const xMax = parseFloat(document.getElementById('xMax').value);
-  const yMin = parseFloat(document.getElementById('yMin').value);
-  const yMax = parseFloat(document.getElementById('yMax').value);
+  const xMin = parseFloat(document.getElementById('xMin').value) || -10;
+  const xMax = parseFloat(document.getElementById('xMax').value) || 10;
+  const yMin = parseFloat(document.getElementById('yMin').value) || -10;
+  const yMax = parseFloat(document.getElementById('yMax').value) || 10;
   try {
     functionPlot({
       target: '#plot',
@@ -41,8 +34,8 @@ function solveEquation() {
   const right = document.getElementById('eqRight').value;
   try {
     const equation = `${left} - (${right})`;
-    const f = x => math.evaluate(equation, { x });
-    const df = x => math.derivative(equation, 'x').evaluate({ x });
+    const f = x => math.evaluate(equation, {x});
+    const df = x => math.derivative(equation, 'x').evaluate({x});
     let x0 = 1, x1;
     for (let i = 0; i < 20; i++) {
       x1 = x0 - f(x0) / df(x0);
