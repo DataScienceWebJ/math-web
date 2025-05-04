@@ -5,24 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MathGraph Advanced</title>
   <style>
-    body { margin: 0; font-family: sans-serif; background: #f2f2f2; color: #222; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f2f2f2; color: #222; }
     .container { max-width: 1000px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
     h1 { text-align: center; margin-bottom: 20px; }
-    .tabs { display: flex; flex-wrap: wrap; margin-bottom: 20px; }
-    .tab { flex: 1; padding: 10px; text-align: center; background: #eee; cursor: pointer; border: 1px solid #ccc; min-width: 150px; }
+    .tabs { display: flex; flex-wrap: wrap; margin-bottom: 20px; border-radius: 8px; overflow: hidden; border: 1px solid #ccc; }
+    .tab { flex: 1; padding: 12px; text-align: center; background: #eee; cursor: pointer; transition: 0.3s; }
+    .tab:hover { background: #ddd; }
     .tab.active { background: #007bff; color: #fff; }
-    .tab-content { display: none; }
+    .tab-content { display: none; animation: fade 0.5s ease; }
     .tab-content.active { display: block; }
-    .input-field, .button { margin: 10px 0; padding: 10px; font-size: 16px; width: 100%; box-sizing: border-box; }
-    .button { background: #007bff; color: #fff; border: none; cursor: pointer; }
+    .input-field, .button { margin: 10px 0; padding: 10px; font-size: 16px; width: 100%; box-sizing: border-box; border-radius: 6px; border: 1px solid #ccc; }
+    .button { background: #007bff; color: #fff; border: none; cursor: pointer; transition: background 0.3s; }
     .button:hover { background: #0056b3; }
     .grid-bg { background-image: linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px); background-size: 20px 20px; }
     #plot { width: 100%; height: 500px; border: 1px solid #ccc; border-radius: 8px; }
-    .result { padding: 10px; background: #e9ecef; border-radius: 6px; margin-top: 10px; }
-    .history { margin-top: 20px; font-size: 14px; background: #f9f9f9; padding: 10px; border-radius: 6px; }
-    .history h3 { margin-top: 0; }
-    .calc-buttons { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; }
-    .calc-buttons button { padding: 10px; font-size: 16px; }
+    .result { padding: 10px; background: #e9ecef; border-radius: 6px; margin-top: 10px; min-height: 40px; }
+    .history { margin-top: 20px; font-size: 14px; background: #f9f9f9; padding: 10px; border-radius: 6px; max-height: 150px; overflow-y: auto; }
+    @keyframes fade { from {opacity: 0;} to {opacity: 1;} }
+    @media (max-width: 600px) {
+      .tab { font-size: 14px; padding: 10px; }
+      h1 { font-size: 22px; }
+    }
   </style>
 </head>
 <body>
@@ -36,34 +39,9 @@
 
     <div id="calc" class="tab-content active">
       <input id="calcInput" class="input-field" placeholder="Введите выражение, например: 2 + 3 * i">
-      <div class="calc-buttons">
-        <button onclick="appendCalc('1')">1</button>
-        <button onclick="appendCalc('2')">2</button>
-        <button onclick="appendCalc('3')">3</button>
-        <button onclick="appendCalc('+')">+</button>
-        <button onclick="appendCalc('4')">4</button>
-        <button onclick="appendCalc('5')">5</button>
-        <button onclick="appendCalc('6')">6</button>
-        <button onclick="appendCalc('-')">-</button>
-        <button onclick="appendCalc('7')">7</button>
-        <button onclick="appendCalc('8')">8</button>
-        <button onclick="appendCalc('9')">9</button>
-        <button onclick="appendCalc('*')">×</button>
-        <button onclick="appendCalc('0')">0</button>
-        <button onclick="appendCalc('.')">.</button>
-        <button onclick="appendCalc('/')">÷</button>
-        <button onclick="appendCalc('i')">i</button>
-        <button onclick="appendCalc('^')">^</button>
-        <button onclick="appendCalc('(')">(</button>
-        <button onclick="appendCalc(')')">)</button>
-        <button onclick="clearCalc()">C</button>
-      </div>
       <button class="button" onclick="evaluateCalc()">Вычислить</button>
       <div id="calcResult" class="result"></div>
-      <div class="history">
-        <h3>История</h3>
-        <ul id="calcHistory"></ul>
-      </div>
+      <div class="history"><strong>История:</strong><div id="calcHistory"></div></div>
     </div>
 
     <div id="graph" class="tab-content">
@@ -89,51 +67,57 @@
       document.querySelector('.tab[onclick*="' + tabName + '"]').classList.add('active');
     }
 
-    function appendCalc(value) {
-      document.getElementById('calcInput').value += value;
-    }
-
-    function clearCalc() {
-      document.getElementById('calcInput').value = '';
-    }
-
     function evaluateCalc() {
       const input = document.getElementById('calcInput').value;
       try {
         const result = math.evaluate(input);
         document.getElementById('calcResult').innerText = `Результат: ${result.toString()}`;
-        const li = document.createElement('li');
-        li.textContent = `${input} = ${result.toString()}`;
-        document.getElementById('calcHistory').prepend(li);
+        addToHistory(input + ' = ' + result);
       } catch (err) {
         document.getElementById('calcResult').innerText = `Ошибка: ${err.message}`;
       }
     }
 
+    function addToHistory(entry) {
+      const historyEl = document.getElementById('calcHistory');
+      const div = document.createElement('div');
+      div.innerText = entry;
+      historyEl.prepend(div);
+    }
+
     function plotFunction() {
       const expr = document.getElementById('graphFunc').value;
+      const target = '#plot';
       try {
         functionPlot({
-          target: '#plot',
+          target: target,
           width: document.getElementById('plot').clientWidth,
           height: 500,
           grid: true,
-          data: [{ fn: expr, sampler: 'builtIn', graphType: 'polyline' }],
-          xAxis: { label: 'x', domain: [-10, 10] },
-          yAxis: { label: 'y', domain: [-10, 10] }
+          data: [{
+            fn: expr,
+            sampler: 'builtIn',
+            graphType: 'polyline'
+          }],
+          xAxis: { domain: [-10, 10] },
+          yAxis: { domain: [-10, 10] }
         });
       } catch (e) {
-        alert('Ошибка в выражении функции');
+        document.getElementById('plot').innerHTML = '<div style="color:red;padding:10px">Ошибка в функции: ' + e.message + '</div>';
       }
     }
 
     function solveEquation() {
       const input = document.getElementById('eqInput').value;
       try {
-        const [left, right] = input.split('=');
-        if (!left || !right) throw new Error("Неверный формат уравнения");
-        const result = math.solve(`${left} - (${right})`, 'x');
-        document.getElementById('solveResult').innerText = `Решение: ${result}`;
+        const [lhs, rhs] = input.split('=');
+        if (!lhs || !rhs) throw new Error('Введите уравнение вида x^2 = 4');
+        const expr = math.simplify(`(${lhs}) - (${rhs})`);
+        const xValues = math.range(-100, 100, 0.5).toArray();
+        const solutions = xValues.filter(x => Math.abs(expr.evaluate({ x })) < 0.01);
+        const rounded = Array.from(new Set(solutions.map(x => Math.round(x * 100) / 100)));
+        if (rounded.length === 0) throw new Error('Нет решений на отрезке [-100, 100]');
+        document.getElementById('solveResult').innerText = `Приближённые корни: ${rounded.join(', ')}`;
       } catch (err) {
         document.getElementById('solveResult').innerText = `Ошибка: ${err.message}`;
       }
