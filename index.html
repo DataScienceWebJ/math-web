@@ -2,31 +2,35 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MathGraph | Добро пожаловать</title>
-  <style>
-    body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
-    .wrapper { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); max-width: 500px; }
-    h1 { margin-top: 0; }
-    p { margin-bottom: 20px; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MathGraph | Главная</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-  <div class="wrapper">
-    <h1>MathGraph</h1>
-    <p>Интерактивный калькулятор, построение графиков и решение уравнений. Получите доступ после оплаты:</p>
+  <div class="container">
+    <header>
+      <h1>MathGraph — Математический интеллект</h1>
+      <p>Ваш мощный калькулятор, построитель графиков и решатель уравнений в одном инструменте!</p>
+      <button onclick="window.location.href = 'https://yourdomain5762.vercel.app/product.html'">Перейти к продукту</button>
+    </header>
 
-    <!-- Вставка виджета ЮMoney -->
-    <iframe src="https://yoomoney.ru/quickpay/fundraise/widget?billNumber=19SJDBQ5L5C.250427&" width="100%" height="480" frameborder="0" allowtransparency="true" scrolling="no"></iframe>
+    <section class="overview">
+      <h2>Что такое MathGraph?</h2>
+      <p>MathGraph — это веб-инструмент для студентов, инженеров, школьников и всех, кто работает с математикой. Это больше, чем просто калькулятор:</p>
+      <ul>
+        <li><strong>Научный калькулятор</strong> с поддержкой сложных выражений, функций, переменных и констант.</li>
+        <li><strong>Построение графиков</strong> любых математических функций — от линейных до тригонометрических и логарифмических.</li>
+        <li><strong>Решение уравнений</strong> и систем уравнений, включая графическое представление решений.</li>
+        <li><strong>Интуитивный интерфейс</strong> с кнопками, иконками и поддержкой популярных математических обозначений.</li>
+        <li><strong>Поддержка переменных</strong>, пользовательских выражений и визуализации.</li>
+      </ul>
+      <p>Это всё в одном, полностью доступном онлайн-продукте — без установки, без ограничений.</p>
+    </section>
 
-    <!-- Автоматический редирект через 3 сек после оплаты (заглушка) -->
-    <script>
-      // Имитируем редирект после оплаты
-      // Замените этот таймер на реальный механизм подтверждения
-      setTimeout(() => {
-        window.location.href = "product.html";
-      }, 3000); 
-    </script>
+    <footer>
+      <p>&copy; 2025 MathGraph. Все права защищены.</p>
+    </footer>
   </div>
 </body>
 </html>
