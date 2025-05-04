@@ -1,129 +1,107 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MathGraph Pro</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>MathGraph Advanced</title>
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #f2f2f2; color: #222; }
+    .container { max-width: 1000px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    h1 { text-align: center; margin-bottom: 20px; }
+    .tabs { display: flex; margin-bottom: 20px; }
+    .tab { flex: 1; padding: 10px; text-align: center; background: #eee; cursor: pointer; border: 1px solid #ccc; }
+    .tab.active { background: #007bff; color: #fff; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .input-field, .button { margin: 10px 0; padding: 10px; font-size: 16px; width: 100%; }
+    .button { background: #007bff; color: #fff; border: none; cursor: pointer; }
+    .button:hover { background: #0056b3; }
+    .grid-bg { background-image: linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px); background-size: 20px 20px; }
+    #plot { width: 100%; height: 500px; border: 1px solid #ccc; border-radius: 8px; }
+    .result { padding: 10px; background: #e9ecef; border-radius: 6px; margin-top: 10px; }
+  </style>
 </head>
 <body>
-  <main class="card">
-    <div class="header">
-      <h1>📐 MathGraph Pro</h1>
-      <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+  <div class="container">
+    <h1>MathGraph Advanced</h1>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('calc')">Калькулятор</div>
+      <div class="tab" onclick="switchTab('graph')">График</div>
+      <div class="tab" onclick="switchTab('solve')">Решение уравнений</div>
     </div>
 
-    <p class="subtitle">Расширенный инструмент для изучения математики: графики, калькулятор, функции</p>
-
-    <section class="input-section">
-      <select id="examples" onchange="loadExample()">
-        <option disabled selected>Примеры функций</option>
-        <option value="sin(x)">sin(x)</option>
-        <option value="cos(x)">cos(x)</option>
-        <option value="x^2">x²</option>
-        <option value="x^3">x³</option>
-        <option value="sqrt(x)">sqrt(x)</option>
-        <option value="log(x)">log(x)</option>
-        <option value="tan(x)">tan(x)</option>
-        <option value="abs(x)">|x|</option>
-        <option value="exp(x)">exp(x)</option>
-        <option value="1/x">1/x</option>
-      </select>
-
-      <input type="text" id="functionInput" placeholder="например: sin(x), x^2, log(x)" />
-      <button onclick="plotFunction()">Построить</button>
-    </section>
-
-    <div class="button-row">
-      <button onclick="clearPlot()">Очистить</button>
-      <button onclick="saveAsImage()">Скачать PNG</button>
+    <div id="calc" class="tab-content active">
+      <input id="calcInput" class="input-field" placeholder="Введите выражение, например: 2 + 3 * i">
+      <button class="button" onclick="evaluateCalc()">Вычислить</button>
+      <div id="calcResult" class="result"></div>
     </div>
 
-    <div id="plot"></div>
+    <div id="graph" class="tab-content">
+      <input id="graphFunc" class="input-field" placeholder="Введите функцию, например: sin(x)">
+      <button class="button" onclick="plotFunction()">Построить график</button>
+      <div id="plot" class="grid-bg"></div>
+    </div>
 
-    <hr>
+    <div id="solve" class="tab-content">
+      <input id="eqInput" class="input-field" placeholder="Введите уравнение, например: x^2 + 1 = 0">
+      <button class="button" onclick="solveEquation()">Решить уравнение</button>
+      <div id="solveResult" class="result"></div>
+    </div>
+  </div>
 
-    <section class="calculator">
-      <h2>🧮 Калькулятор</h2>
-      <input type="text" id="calcInput" placeholder="Введите выражение, например: 2+2*sin(3)" />
-      <button onclick="calculateExpression()">Вычислить</button>
-      <div id="calcResult"></div>
-    </section>
-
-    <p class="footer">Создано с любовью для изучения математики 💙</p>
-  </main>
-
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@11.11.0/lib/browser/math.min.js"></script>
   <script src="https://unpkg.com/function-plot"></script>
   <script>
-    function plotFunction() {
-      const input = document.getElementById("functionInput").value;
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      document.getElementById(tabName).classList.add('active');
+      document.querySelector('.tab[onclick*="' + tabName + '"]').classList.add('active');
+    }
+
+    function evaluateCalc() {
+      const input = document.getElementById('calcInput').value;
       try {
-        functionPlot({
-          target: "#plot",
-          width: 700,
-          height: 400,
-          grid: true,
-          data: [{ fn: input, sampler: 'builtIn', graphType: 'polyline' }]
-        });
+        const result = math.evaluate(input);
+        document.getElementById('calcResult').innerText = `Результат: ${result.toString()}`;
       } catch (err) {
-        alert("Ошибка: проверьте синтаксис функции.");
+        document.getElementById('calcResult').innerText = `Ошибка: ${err.message}`;
       }
     }
 
-    function loadExample() {
-      const value = document.getElementById("examples").value;
-      document.getElementById("functionInput").value = value;
-      plotFunction();
-    }
-
-    function clearPlot() {
-      document.getElementById("plot").innerHTML = "";
-      document.getElementById("functionInput").value = "";
-    }
-
-    function toggleTheme() {
-      document.body.classList.toggle("dark");
-      const icon = document.querySelector(".theme-toggle");
-      icon.textContent = document.body.classList.contains("dark") ? "🌞" : "🌙";
-    }
-
-    function saveAsImage() {
-      const svg = document.querySelector("#plot svg");
-      if (!svg) return alert("Сначала постройте график.");
-
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const img = new Image();
-      const svgBlob = new Blob([svgData], {type: "image/svg+xml;charset=utf-8"});
-      const url = URL.createObjectURL(svgBlob);
-
-      img.onload = function() {
-        canvas.width = svg.clientWidth;
-        canvas.height = svg.clientHeight;
-        ctx.drawImage(img, 0, 0);
-        URL.revokeObjectURL(url);
-
-        const png = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.download = "graph.png";
-        link.href = png;
-        link.click();
-      };
-
-      img.src = url;
-    }
-
-    function calculateExpression() {
-      const expr = document.getElementById("calcInput").value;
+    function plotFunction() {
+      const expr = document.getElementById('graphFunc').value;
       try {
-        const result = math.evaluate(expr);
-        document.getElementById("calcResult").innerHTML = "Результат: <strong>" + result + "</strong>";
+        functionPlot({
+          target: '#plot',
+          width: document.getElementById('plot').clientWidth,
+          height: 500,
+          grid: true,
+          data: [{ fn: expr, sampler: 'builtIn', graphType: 'polyline' }],
+          xAxis: { label: 'x', domain: [-10, 10] },
+          yAxis: { label: 'y', domain: [-10, 10] }
+        });
       } catch (e) {
-        document.getElementById("calcResult").textContent = "Ошибка в выражении.";
+        alert('Ошибка в выражении функции');
+      }
+    }
+
+    function solveEquation() {
+      const input = document.getElementById('eqInput').value;
+      try {
+        const parsed = math.parse(input);
+        if (!parsed || parsed.type !== 'OperatorNode' || parsed.op !== '=') {
+          throw new Error("Введите уравнение вида 'x^2 = 4'");
+        }
+        const lhs = parsed.args[0];
+        const rhs = parsed.args[1];
+        const solutions = math.solve(lhs.toString() + ' - (' + rhs.toString() + ')', 'x');
+        document.getElementById('solveResult').innerText = `Решение: ${solutions.toString()}`;
+      } catch (err) {
+        document.getElementById('solveResult').innerText = `Ошибка: ${err.message}`;
       }
     }
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjs@11.11.0/lib/browser/math.min.js"></script>
 </body>
 </html>
+
