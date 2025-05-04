@@ -1,80 +1,32 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MathGraph — Доступ к приложению</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MathGraph | Добро пожаловать</title>
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      color: #333;
-    }
-    .container {
-      max-width: 600px;
-      margin: 60px auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    p {
-      font-size: 18px;
-      line-height: 1.6;
-    }
-    iframe {
-      display: block;
-      margin: 30px auto;
-    }
-    .note {
-      margin-top: 20px;
-      text-align: center;
-      font-size: 14px;
-    }
-    .note a {
-      color: #007bff;
-      text-decoration: none;
-    }
-    .note a:hover {
-      text-decoration: underline;
-    }
+    body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+    .wrapper { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); max-width: 500px; }
+    h1 { margin-top: 0; }
+    p { margin-bottom: 20px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Доступ к MathGraph</h1>
-    <p>MathGraph — это интерактивное веб-приложение для:</p>
-    <ul>
-      <li>📊 Построения графиков математических функций</li>
-      <li>🧮 Расчётов с поддержкой комплексных чисел</li>
-      <li>🔍 Решения уравнений</li>
-      <li>📱 Поддержки мобильных устройств</li>
-    </ul>
-    <p>После оплаты вы автоматически получите доступ к приложению.</p>
+  <div class="wrapper">
+    <h1>MathGraph</h1>
+    <p>Интерактивный калькулятор, построение графиков и решение уравнений. Получите доступ после оплаты:</p>
 
-    <!-- YooMoney iframe с successURL -->
-    <iframe 
-      src="https://yoomoney.ru/quickpay/fundraise/widget?billNumber=19SJDBQ5L5C.250427&successURL=https%3A%2F%math-web7869%2Fproduct.html" 
-      width="500" 
-      height="480" 
-      frameborder="0" 
-      allowtransparency="true" 
-      scrolling="no">
-    </iframe>
+    <!-- Вставка виджета ЮMoney -->
+    <iframe src="https://yoomoney.ru/quickpay/fundraise/widget?billNumber=19SJDBQ5L5C.250427&" width="100%" height="480" frameborder="0" allowtransparency="true" scrolling="no"></iframe>
 
-    <div class="note">
-      <p>Если виджет не отображается, перейдите по 
-        <a href="https://yoomoney.ru/fundraise/19SJDBQ5L5C.250427" target="_blank">
-          этой ссылке для оплаты
-        </a>.
-      </p>
-    </div>
+    <!-- Автоматический редирект через 3 сек после оплаты (заглушка) -->
+    <script>
+      // Имитируем редирект после оплаты
+      // Замените этот таймер на реальный механизм подтверждения
+      setTimeout(() => {
+        window.location.href = "product.html";
+      }, 3000); 
+    </script>
   </div>
 </body>
 </html>
