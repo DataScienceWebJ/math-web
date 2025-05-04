@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  margin: 0;
+}
+
+body.light {
+  background: linear-gradient(to bottom, #e0f2fe, #f3f4f6);
+}
+
+body.dark {
+  background: linear-gradient(to bottom, #1f2937, #111827);
+}
+
+input, textarea, select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+button {
+  font-weight: 500;
+  border-radius: 8px;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+canvas {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.card {
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+}
+
+.dark .card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}

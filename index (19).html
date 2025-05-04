@@ -1,0 +1,492 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Learning App - Продукт</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.9/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@12.0.0/lib/browser/math.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="logic.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel" data-presets="react">
+    const { useState, useEffect, useRef } = React;
+
+    function AppPage() {
+      const [calcInput, setCalcInput] = useState('');
+      const [calcResult, setCalcResult] = useState('');
+      const [history, setHistory] = useState([]);
+      const [unitInput, setUnitInput] = useState('');
+      const [unitResult, setUnitResult] = useState('');
+      const [unitType, setUnitType] = useState('metersToFeet');
+      const [matrixInput, setMatrixInput] = useState('');
+      const [matrixResult, setMatrixResult] = useState('');
+      const [theme, setTheme] = useState('light');
+      const [expression, setExpression] = useState('sin(x)');
+      const [xMin, setXMin] = useState(-10);
+      const [xMax, setXMax] = useState(10);
+      const [yMin, setYMin] = useState('');
+      const [yMax, setYMax] = useState('');
+      const [equations, setEquations] = useState(['']);
+      const [solution, setSolution] = useState('');
+      const [graphHistory, setGraphHistory] = useState([]);
+      const chartRef = useRef(null);
+      const canvasRef = useRef(null);
+
+      useEffect(() => {
+        if (localStorage.getItem('paymentStatus') !== 'success') {
+          window.location.href = 'home.html';
+        } else {
+          window.plotGraph(expression, xMin, xMax, yMin, yMax, canvasRef, chartRef, () => {});
+        }
+        document.body.className = theme;
+        return () => chartRef.current?.destroy();
+      }, [theme]);
+
+      const handleCalc = () => {
+        window.calculate(calcInput, (result) => {
+          setCalcResult(result);
+          if (result && !result.startsWith('Ошибка')) {
+            setHistory(prev => [...prev, `${calcInput} = ${result}`].slice(-10));
+          }
+        });
+      };
+
+      const appendToCalc = (value) => {
+        setCalcInput(prev => prev + value);
+      };
+
+      const clearCalc = () => {
+        setCalcInput('');
+        setCalcResult('');
+      };
+
+      const exportHistory = () => {
+        window.exportHistory(history);
+      };
+
+      const convertUnits = () => {
+        const value = parseFloat(unitInput);
+        if (isNaN(value)) {
+          setUnitResult('Ошибка: введите число');
+          return;
+        }
+        const result = window.convertUnits(value, unitType);
+        setUnitResult(`${value} → ${result.toFixed(2)}`);
+      };
+
+      const handleMatrixCalc = () => {
+        window.calculateMatrix(matrixInput, setMatrixResult);
+      };
+
+      const toggleTheme = () => {
+        setTheme(prev => prev === 'light' ? 'dark' : 'light');
+      };
+
+      const plot = () => {
+        window.plotGraph(
+          expression,
+          xMin,
+          xMax,
+          yMin,
+          yMax,
+          canvasRef,
+          chartRef,
+          () => alert('Ошибка в выражении: введите корректную функцию, например, sin(x) или x^2')
+        );
+        setGraphHistory(prev => [...new Set([expression, ...prev])].slice(0, 5));
+      };
+
+      const saveGraph = () => {
+        window.saveGraph(canvasRef, expression);
+      };
+
+      const handleZoom = (e) => {
+        e.preventDefault();
+        const zoomFactor = e.deltaY > 0 ? 1.2 : 0.8;
+        const xRange = xMax - xMin;
+        const newXRange = xRange * zoomFactor;
+        const xCenter = (xMin + xMax) / 2;
+        setXMin(xCenter - newXRange / 2);
+        setXMax(xCenter + newXRange / 2);
+        if (yMin !== '' && yMax !== '') {
+          const yRange = yMax - yMin;
+          const newYRange = yRange * zoomFactor;
+          const yCenter = (yMin + yMax) / 2;
+          setYMin(yCenter - newYRange / 2);
+          setYMax(yCenter + newYRange / 2);
+        }
+        plot();
+      };
+
+      const selectPreset = (e) => {
+        const newExpression = e.target.value;
+        setExpression(newExpression);
+        window.plotGraph(
+          newExpression,
+          xMin,
+          xMax,
+          yMin,
+          yMax,
+          canvasRef,
+          chartRef,
+          () => alert('Ошибка в выражении')
+        );
+        setGraphHistory(prev => [...new Set([newExpression, ...prev])].slice(0, 5));
+      };
+
+      const replayGraph = (expr) => {
+        setExpression(expr);
+        window.plotGraph(
+          expr,
+          xMin,
+          xMax,
+          yMin,
+          yMax,
+          canvasRef,
+          chartRef,
+          () => alert('Ошибка в выражении')
+        );
+      };
+
+      const addEquation = () => setEquations([...equations, '']);
+      const updateEquation = (index, value) => {
+        const newEquations = [...equations];
+        newEquations[index] = value;
+        setEquations(newEquations);
+      };
+
+      const solve = () => {
+        window.solveEquations(equations, setSolution);
+      };
+
+      return (
+        <div className={`min-h-screen p-6 ${theme === 'light' ? 'bg-gradient-to-b from-blue-100 to-gray-100' : 'bg-gradient-to-b from-gray-800 to-gray-900'}`}>
+          <div className="flex justify-between items-center mb-8">
+            <h1 className={`text-4xl font-bold text-center ${theme === 'light' ? 'text-gray-800' : 'text-white'}`}>
+              Math Learning App
+            </h1>
+            <button
+              onClick={toggleTheme}
+              className={`px-4 py-2 rounded-lg ${theme === 'light' ? 'bg-gray-200 text-gray-800 hover:bg-gray-300' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+            >
+              {theme === 'light' ? 'Темная тема' : 'Светлая тема'}
+            </button>
+          </div>
+          <div className="max-w-5xl mx-auto space-y-8">
+            <div className={`p-6 rounded-xl shadow-xl ${theme === 'light' ? 'bg-white' : 'bg-gray-800'}`}>
+              <h2 className={`text-2xl font-semibold mb-4 ${theme === 'light' ? 'text-gray-700' : 'text-gray-200'}`}>Калькулятор</h2>
+              <input
+                type="text"
+                value={calcInput}
+                onChange={(e) => setCalcInput(e.target.value)}
+                className={`border p-3 w-full mb-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'light' ? 'bg-white text-gray-800' : 'bg-gray-700 text-white'}`}
+                placeholder="Введите выражение или используйте кнопки"
+              />
+              <div className="grid grid-cols-6 gap-2 mb-4">
+                {['1', '2', '3', '+', '-', 'sin('].map(val => (
+                  <button
+                    key={val}
+                    onClick={() => appendToCalc(val)}
+                    className={`px-4 py-2 rounded-lg transition ${theme === 'light' ? 'bg-gray-200 text-gray-800 hover:bg-gray-300' : 'bg-gray-600 text-white hover:bg-gray-500'}`}
+                  >
+                    {val}
+                  </button>
+                ))}
+                {['4', '5', '6', '*', '/', 'cos('].map(val => (
+                  <button
+                    key={val}
+                    onClick={() => appendToCalc(val)}
+                    className={`px-4 py-2 rounded-lg transition ${theme === 'light' ? 'bg-gray-200 text-gray-800 hover:bg-gray-300' : 'bg-gray-600 text-white hover:bg-gray-500'}`}
+                  >
+                    {val}
+                  </button>
+                ))}
+                {['7', '8', '9', '(', ')', 'tan('].map(val => (
+                  <button
+                    key={val}
+                    onClick={() => appendToCalc(val)}
+                    className={`px-4 py-2 rounded-lg transition ${theme === 'light' ? 'bg-gray-200 text-gray-800 hover:bg-gray-300' : 'bg-gray-600 text-white hover:bg-gray-500'}`}
+                  >
+                    {val}
+                  </button>
+                ))}
+                {['0', '.', 'pi', 'e', 'ln(', 'sqrt('].map(val => (
+                  <button
+                    key={val}
+                    onClick={() => appendToCalc(val)}
+                    className={`px-4 py-2 rounded-lg transition ${theme === 'light' ? 'bg-gray-200 text-gray-800 hover:bg-gray-300' : 'bg-gray-600 text-white hover:bg-gray-500'}`}
+                  >
+                    {val}
+                  </button>
+                ))}
+                {['x^2', 'x^3', 'exp(', 'abs(', 'mean(', 'C'].map(val => (
+                  <button
+                    key={val}
+                    onClick={val === 'C' ? clearCalc : () => appendToCalc(val === 'x^2' ? '^2' : val === 'x^3' ? '^3' : val)}
+                    className={`px-4 py-2 rounded-lg transition ${
+                      val === 'C' ? 'bg-red-500 text-white hover:bg-red-600' : theme === 'light' ? 'bg-gray-200 text-gray-800 hover:bg-gray-300' : 'bg-gray-600 text-white hover:bg-gray-500'
+                    }`}
+                  >
+                    {val === 'C' ? 'C' : val}
+                  </button>
+                ))}
+              </div>
+              <div className="flex space-x-4 mb-4">
+                <button
+                  onClick={handleCalc}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+                >
+                  Вычислить
+                </button>
+                <button
+                  onClick={exportHistory}
+                  className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+                >
+                  Экспорт истории
+                </button>
+              </div>
+              {calcResult && (
+                <p className={`mt-4 text-lg ${theme === 'light' ? 'text-gray-800' : 'text-gray-200'}`}>Результат: {calcResult}</p>
+              )}
+              {history.length > 0 && (
+                <div className="mt-4">
+                  <h4 className={`text-lg font-semibold ${theme === 'light' ? 'text-gray-700' : 'text-gray-200'}`}>История (до 10 записей):</h4>
+                  <ul className={`list-disc list-inside ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                    {history.map((entry, index) => (
+                      <li key={index}>{entry}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="mt-6">
+                <h4 className={`text-lg font-semibold ${theme === 'light' ? 'text-gray-700' : 'text-gray-200'}`}>Конвертер единиц:</h4>
+                <div className="flex space-x-4 mt-2">
+                  <input
+                    type="number"
+                    value={unitInput}
+                    onChange={(e) => setUnitInput(e.target.value)}
+                    className={`border p-3 w-1/2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'light' ? 'bg-white text-gray-800' : 'bg-gray-700 text-white'}`}
+                    placeholder="Введите значение"
+                  />
+                  <select
+                    value={unitType}
+                    onChange={(e) => setUnitType(e.target.value)}
+                    className={`border p-3 rounded-lg focus:outline-none ${theme === 'light' ? 'bg-white text-gray-800' : 'bg-gray-700 text-white'}`}
+                  >
+                    <option value="metersToFeet">Метры → Футы</option>
+                    <option value="feetToMeters">Футы → Метры</option>
+                    <option value="kgToPounds">Килограммы → Фунты</option>
+                    <option value="poundsToKg">Фунты → Килограммы</option>
+                    <option value="celsiusToFahrenheit">Цельсий → Фаренгейт</option>
+                    <option value="fahrenheitToCelsius">Фаренгейт → Цельсий</option>
+                  </select>
+                </div>
+                <button
+                  onClick={convertUnits}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition mt-2"
+                >
+                  Конвертировать
+                </button>
+                {unitResult && (
+                  <p className={`mt-4 text-lg ${theme === 'light' ? 'text-gray-800' : 'text-gray-200'}`}>Результат: {unitResult}</p>
+                )}
+              </div>
+              <div className="mt-6">
+                <h4 className={`text-lg font-semibold ${theme === 'light' ? 'text-gray-700' : 'text-gray-200'}`}>Матричные операции:</h4>
+                <textarea
+                  value={matrixInput}
+                  onChange={(e) => setMatrixInput(e.target.value)}
+                  className={`border p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'light' ? 'bg-white text-gray-800' : 'bg-gray-700 text-white'}`}
+                  placeholder="Введите матрицу, например: [[1, 2], [3, 4]] * [[1, 0], [0, 1]] или det([[1, 2], [3, 4]])"
+                  rows="4"
+                />
+                <button
+                  onClick={handleMatrixCalc}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition mt-2"
+                >
+                  Вычислить матрицу
+                </button>
+                {matrixResult && (
+                  <p className={`mt-4 text-lg ${theme === 'light' ? 'text-gray-800' : 'text-gray-200'}`}>Результат: {matrixResult}</p>
+                )}
+              </div>
+            </div>
+            <div className={`p-6 rounded-xl shadow-xl ${theme === 'light' ? 'bg-white' : 'bg-gray-800'}`}>
+              <h2 className={`text-2xl font-semibold mb-4 ${theme === 'light' ? 'text-gray-700' : 'text-gray-200'}`}>Построение графика</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="flex space-x-4">
+                  <input
+                    type="text"
+                    value={expression}
+                    onChange={(e) => setExpression(e.target.value)}
+                    className={`border p-3 w-2/3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'light' ? 'bg-white text-gray-800' : 'bg-gray-700 text-white'}`}
+                    placeholder="Введите функцию, например, sin(x) или x^2"
+                  />
+                  <select
+                    onChange={selectPreset}
+                    className={`border p-3 w-1/3 rounded-lg focus:outline-none ${theme === 'light' ? 'bg-white text-gray-800' : 'bg-gray-700 text-white'}`}
+                  >
+                    <option value="">Выберите пресет</option>
+                    <option value="sin(x)">sin(x)</option>
+                    <option value="x^2">x²</option>
+                    <option value="e^x">e^x</option>
+                    <option value="1/x">1/x</option>
+                    <option value="cos(x)">cos(x)</option>
+                    <option value="tan(x)">tan(x)</option>
+                  </select>
+                </div>
+                <div className="flex space-x-4">
+                  <input
+                    type="number"
+                    value={xMin}
+                    onChange={(e) => setXMin(parseFloat(e.target.value))}
+                    className={`border p-3 w-1/2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'light' ? 'bg-white text-gray-800' : 'bg-gray-700 text-white'}`}
+                    placeholder="X мин"
+                  />
+                  <input
+                    type="number"
+                    value={xMax}
+                    onChange={(e) => setXMax(parseFloat(e.target.value))}
+                    className={`border p-3 w-1/2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'light' ? 'bg-white text-gray-800' : 'bg-gray-700 text-white'}`}
+                    placeholder="X макс"
+                  />
+                </div>
+                <div className="flex space-x-4">
+                  <input
+                    type="number"
+                    value={yMin}
+                    onChange={(e) => setYMin(e.target.value ? parseFloat(e.target.value) : '')}
+                    className={`border p-3 w-1/2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'light' ? 'bg-white text-gray-800' : 'bg-gray-700 text-white'}`}
+                    placeholder="Y мин (опционально)"
+                  />
+                  <input
+                    type="number"
+                    value={yMax}
+                    onChange={(e) => setYMax(e.target.value ? parseFloat(e.target.value) : '')}
+                    className={`border p-3 w-1/2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'light' ? 'bg-white text-gray-800' : 'bg-gray-700 text-white'}`}
+                    placeholder="Y макс (опционально)"
+                  />
+                </div>
+              </div>
+              <div className="flex space-x-4 mb-4">
+                <button
+                  onClick={plot}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+                >
+                  Построить график
+                </button>
+                <button
+                  onClick={saveGraph}
+                  className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+                >
+                  Сохранить график
+                </button>
+              </div>
+              <canvas
+                ref={canvasRef}
+                className="mt-6"
+                style={{ maxWidth: '300px', maxHeight: '150px' }}
+                onWheel={handleZoom}
+              ></canvas>
+              {graphHistory.length > 0 && (
+                <div className="mt-4">
+                  <h4 className={`text-lg font-semibold ${theme === 'light' ? 'text-gray-700' : 'text-gray-200'}`}>История графиков (до 5):</h4>
+                  <ul className={`list-disc list-inside ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                    {graphHistory.map((expr, index) => (
+                      <li
+                        key={index}
+                        className="cursor-pointer hover:underline"
+                        onClick={() => replayGraph(expr)}
+                      >
+                        {expr}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            <div className={`p-6 rounded-xl shadow-xl ${theme === 'light' ? 'bg-white' : 'bg-gray-800'}`}>
+              <h2 className={`text-2xl font-semibold mb-4 ${theme === 'light' ? 'text-gray-700' : 'text-gray-200'}`}>Решение уравнений</h2>
+              {equations.map((eq, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  value={eq}
+                  onChange={(e) => updateEquation(index, e.target.value)}
+                  className={`border p-3 w-full mb-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'light' ? 'bg-white text-gray-800' : 'bg-gray-700 text-white'}`}
+                  placeholder="Введите уравнение, например, x^2 - 4 = 0 или x + y = 1"
+                />
+              ))}
+              <div className="flex space-x-4">
+                <button
+                  onClick={addEquation}
+                  className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+                >
+                  Добавить уравнение
+                </button>
+                <button
+                  onClick={solve}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+                >
+                  Решить
+                </button>
+              </div>
+              {solution && (
+                <pre className={`mt-6 p-4 rounded-lg ${theme === 'light' ? 'bg-gray-100 text-gray-800' : 'bg-gray-700 text-gray-200'}`}>{solution}</pre>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<AppPage />, document.getElementById('root'));
+  </script>
+</body>
+</html>

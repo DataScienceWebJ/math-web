@@ -1,0 +1,275 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Learning App - Демонстрация и оплата</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.9/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@12.0.0/lib/browser/math.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="logic.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel" data-presets="react">
+    const { useState, useEffect } = React;
+
+    function DemoCalculator() {
+      const [calcInput, setCalcInput] = useState('');
+      const [calcResult, setCalcResult] = useState('');
+      const [history, setHistory] = useState([]);
+      const [unitInput, setUnitInput] = useState('');
+      const [unitResult, setUnitResult] = useState('');
+      const [unitType, setUnitType] = useState('metersToFeet');
+
+      const appendToCalc = (value) => {
+        setCalcInput(prev => prev + value);
+      };
+
+      const clearCalc = () => {
+        setCalcInput('');
+        setCalcResult('');
+      };
+
+      const handleCalc = () => {
+        window.demoCalculate(calcInput, (result) => {
+          setCalcResult(result);
+          if (result && !result.startsWith('Ошибка')) {
+            setHistory(prev => [...prev, `${calcInput} = ${result}`].slice(-3));
+          }
+        });
+      };
+
+      const convertUnits = () => {
+        const value = parseFloat(unitInput);
+        if (isNaN(value)) {
+          setUnitResult('Ошибка: введите число');
+          return;
+        }
+        const result = window.convertUnits(value, unitType);
+        setUnitResult(`${value} → ${result.toFixed(2)}`);
+      };
+
+      return (
+        <div className="bg-gray-50 p-6 rounded-xl shadow-md mt-6">
+          <h3 className="text-xl font-semibold mb-4 text-gray-700">Попробуйте демо-калькулятор</h3>
+          <p className="text-gray-600 mb-4">Оцените интерфейс нашего калькулятора (только базовые операции и конвертер длины):</p>
+          <input
+            type="text"
+            value={calcInput}
+            onChange={(e) => setCalcInput(e.target.value)}
+            className="border p-3 w-full mb-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Введите выражение, например, 2 + 2"
+          />
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            {['1', '2', '3', '+'].map(val => (
+              <button
+                key={val}
+                onClick={() => appendToCalc(val)}
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
+              >
+                {val}
+              </button>
+            ))}
+            {['4', '5', '6', '-'].map(val => (
+              <button
+                key={val}
+                onClick={() => appendToCalc(val)}
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
+              >
+                {val}
+              </button>
+            ))}
+            {['7', '8', '9', '*'].map(val => (
+              <button
+                key={val}
+                onClick={() => appendToCalc(val)}
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
+              >
+                {val}
+              </button>
+            ))}
+            {['0', '.', '/', 'C'].map(val => (
+              <button
+                key={val}
+                onClick={val === 'C' ? clearCalc : () => appendToCalc(val)}
+                className={`px-4 py-2 rounded-lg transition ${
+                  val === 'C' ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                }`}
+              >
+                {val}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={handleCalc}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            Вычислить
+          </button>
+          {calcResult && (
+            <p className="mt-4 text-gray-800 text-lg">Результат: {calcResult}</p>
+          )}
+          {history.length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-lg font-semibold text-gray-700">История (до 3 записей):</h4>
+              <ul className="list-disc list-inside text-gray-600">
+                {history.map((entry, index) => (
+                  <li key={index}>{entry}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <div className="mt-6">
+            <h4 className="text-lg font-semibold text-gray-700">Конвертер единиц (длина):</h4>
+            <div className="flex space-x-4 mt-2">
+              <input
+                type="number"
+                value={unitInput}
+                onChange={(e) => setUnitInput(e.target.value)}
+                className="border p-3 w-1/2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Введите значение"
+              />
+              <select
+                value={unitType}
+                onChange={(e) => setUnitType(e.target.value)}
+                className="border p-3 rounded-lg focus:outline-none"
+              >
+                <option value="metersToFeet">Метры → Футы</option>
+                <option value="feetToMeters">Футы → Метры</option>
+              </select>
+            </div>
+            <button
+              onClick={convertUnits}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition mt-2"
+            >
+              Конвертировать
+            </button>
+            {unitResult && (
+              <p className="mt-4 text-gray-800 text-lg">Результат: {unitResult}</p>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function HomePage() {
+      useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('payment') === 'success') {
+          window.handlePayment(() => {
+            window.location.href = 'index.html';
+          });
+        }
+      }, []);
+
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-blue-100 to-gray-100 flex flex-col items-center p-4">
+          <header className="max-w-5xl w-full text-center py-12">
+            <h1 className="text-5xl font-bold text-gray-800 mb-4">Math Learning App</h1>
+            <p className="text-xl text-gray-600 mb-8">
+              Ваш личный помощник в изучении математики! Идеально для студентов, преподавателей и всех, кто хочет углубить свои знания.
+            </p>
+          </header>
+          <section className="max-w-5xl w-full mb-12">
+            <h2 className="text-3xl font-semibold text-gray-800 mb-6 text-center">Возможности нашего приложения</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white p-6 rounded-xl shadow-md transform transition hover:scale-105">
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">Многофункциональный калькулятор</h3>
+                <p className="text-gray-600">
+                  Выполняйте арифметические, тригонометрические, логарифмические вычисления, работайте с матрицами и статистикой. Сохраняйте историю и экспортируйте результаты.
+                </p>
+              </div>
+              <div className="bg-white p-6 rounded-xl shadow-md transform transition hover:scale-105">
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">Интерактивные графики</h3>
+                <p className="text-gray-600">
+                  Визуализируйте функции (например, sin(x), x²) с настройкой масштаба. Плавные линии и интерактивные подсказки помогут лучше понять графики.
+                </p>
+              </div>
+              <div className="bg-white p-6 rounded-xl shadow-md transform transition hover:scale-105">
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">Решение уравнений</h3>
+                <p className="text-gray-600">
+                  Решает одиночные уравнения (например, x² - 4 = 0) и системы до 3 переменных с точными или численными методами.
+                </p>
+              </div>
+            </div>
+          </section>
+          <section className="max-w-5xl w-full mb-12">
+            <h2 className="text-3xl font-semibold text-gray-800 mb-6 text-center">Демонстрация продукта</h2>
+            <div className="text-center mb-6">
+              <h3 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">
+                Math Learning App
+              </h3>
+            </div>
+            <DemoCalculator />
+          </section>
+          <section className="max-w-5xl w-full mb-12">
+            <h2 className="text-3xl font-semibold text-gray-800 mb-6 text-center">Оплатите доступ</h2>
+            <div className="bg-white p-8 rounded-xl shadow-md text-center">
+              <p className="text-gray-600 mb-6">
+                Получите полный доступ ко всем функциям приложения после оплаты через ЮMoney.
+              </p>
+              <a href="https://yoomoney.ru/fundraise/19SJDBQ5L5C.250427" target="_blank" className="text-blue-500 underline hover:text-blue-700">
+                Перейти к оплате
+              </a>
+              <iframe
+                src="https://yoomoney.ru/quickpay/fundraise/widget?billNumber=19SJDBQ5L5C.250427&successURL=http%3A%2F%2Flocalhost%3A8000%2Fhome.html%3Fpayment%3Dsuccess"
+                width="500"
+                height="480"
+                frameBorder="0"
+                allowTransparency="true"
+                scrolling="no"
+                className="mx-auto my-6"
+              ></iframe>
+            </div>
+          </section>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<HomePage />, document.getElementById('root'));
+  </script>
+</body>
+</html>
