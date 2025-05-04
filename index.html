@@ -1,37 +1,41 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MathGraph | Главная</title>
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>MathGraph Pro — Интерактивный калькулятор и графопостроитель</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="light-theme">
   <div class="container">
-    <header>
-      <h1>MathGraph — Математический интеллект</h1>
-      <p>Ваш мощный калькулятор, построитель графиков и решатель уравнений в одном инструменте!</p>
-      <button onclick="window.location.href = 'https://yourdomain5762.vercel.app/product.html'">Перейти к продукту</button>
-    </header>
+    <h1>MathGraph Pro</h1>
+    <p class="lead">Мощный калькулятор с графиками, уравнениями, комплексными числами и системой истории. Попробуйте демо ниже:</p>
 
-    <section class="overview">
-      <h2>Что такое MathGraph?</h2>
-      <p>MathGraph — это веб-инструмент для студентов, инженеров, школьников и всех, кто работает с математикой. Это больше, чем просто калькулятор:</p>
-      <ul>
-        <li><strong>Научный калькулятор</strong> с поддержкой сложных выражений, функций, переменных и констант.</li>
-        <li><strong>Построение графиков</strong> любых математических функций — от линейных до тригонометрических и логарифмических.</li>
-        <li><strong>Решение уравнений</strong> и систем уравнений, включая графическое представление решений.</li>
-        <li><strong>Интуитивный интерфейс</strong> с кнопками, иконками и поддержкой популярных математических обозначений.</li>
-        <li><strong>Поддержка переменных</strong>, пользовательских выражений и визуализации.</li>
-      </ul>
-      <p>Это всё в одном, полностью доступном онлайн-продукте — без установки, без ограничений.</p>
-    </section>
+    <div class="demo-block">
+      <input id="demoInput" placeholder="Введите выражение (пример: 2+3*i)">
+      <button onclick="evaluateDemo()">Вычислить</button>
+      <div id="demoResult" class="result"></div>
+    </div>
 
-    <footer>
-      <p>&copy; 2025 MathGraph. Все права защищены.</p>
-    </footer>
+    <h2>Оплатить доступ</h2>
+    <iframe src="https://yoomoney.ru/quickpay/fundraise/widget?billNumber=19SJDBQ5L5C.250427&"
+            width="500" height="480" frameborder="0" allowtransparency="true" scrolling="no">
+    </iframe>
+
+    <p><a class="button primary" href="https://вашдомен.ру/product.html">Перейти к продукту после оплаты</a></p>
   </div>
+
+  <script>
+    function evaluateDemo() {
+      const input = document.getElementById("demoInput").value;
+      try {
+        const result = math.evaluate(input);
+        document.getElementById("demoResult").innerText = "Результат: " + result.toString();
+      } catch (e) {
+        document.getElementById("demoResult").innerText = "Ошибка: " + e.message;
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@11.11.0/lib/browser/math.min.js"></script>
 </body>
 </html>
 
