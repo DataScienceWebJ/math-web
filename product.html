@@ -3,31 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MathGraph — Построение графиков</title>
+  <title>MathGraph Pro</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <main class="card">
     <div class="header">
-      <h1>📈 MathGraph</h1>
+      <h1>📐 MathGraph Pro</h1>
       <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
     </div>
 
-    <p class="subtitle">Интерактивное построение графиков функций</p>
+    <p class="subtitle">Расширенный инструмент для изучения математики: графики, калькулятор, функции</p>
 
-    <div class="input-section">
+    <section class="input-section">
       <select id="examples" onchange="loadExample()">
         <option disabled selected>Примеры функций</option>
         <option value="sin(x)">sin(x)</option>
+        <option value="cos(x)">cos(x)</option>
         <option value="x^2">x²</option>
+        <option value="x^3">x³</option>
+        <option value="sqrt(x)">sqrt(x)</option>
         <option value="log(x)">log(x)</option>
         <option value="tan(x)">tan(x)</option>
+        <option value="abs(x)">|x|</option>
         <option value="exp(x)">exp(x)</option>
+        <option value="1/x">1/x</option>
       </select>
 
       <input type="text" id="functionInput" placeholder="например: sin(x), x^2, log(x)" />
       <button onclick="plotFunction()">Построить</button>
-    </div>
+    </section>
 
     <div class="button-row">
       <button onclick="clearPlot()">Очистить</button>
@@ -36,10 +41,89 @@
 
     <div id="plot"></div>
 
-    <p style="text-align:center; font-size: 14px; opacity: 0.7;">Создано с любовью 💙</p>
+    <hr>
+
+    <section class="calculator">
+      <h2>🧮 Калькулятор</h2>
+      <input type="text" id="calcInput" placeholder="Введите выражение, например: 2+2*sin(3)" />
+      <button onclick="calculateExpression()">Вычислить</button>
+      <div id="calcResult"></div>
+    </section>
+
+    <p class="footer">Создано с любовью для изучения математики 💙</p>
   </main>
 
   <script src="https://unpkg.com/function-plot"></script>
-  <script src="script.js"></script>
+  <script>
+    function plotFunction() {
+      const input = document.getElementById("functionInput").value;
+      try {
+        functionPlot({
+          target: "#plot",
+          width: 700,
+          height: 400,
+          grid: true,
+          data: [{ fn: input, sampler: 'builtIn', graphType: 'polyline' }]
+        });
+      } catch (err) {
+        alert("Ошибка: проверьте синтаксис функции.");
+      }
+    }
+
+    function loadExample() {
+      const value = document.getElementById("examples").value;
+      document.getElementById("functionInput").value = value;
+      plotFunction();
+    }
+
+    function clearPlot() {
+      document.getElementById("plot").innerHTML = "";
+      document.getElementById("functionInput").value = "";
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      const icon = document.querySelector(".theme-toggle");
+      icon.textContent = document.body.classList.contains("dark") ? "🌞" : "🌙";
+    }
+
+    function saveAsImage() {
+      const svg = document.querySelector("#plot svg");
+      if (!svg) return alert("Сначала постройте график.");
+
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+      const svgBlob = new Blob([svgData], {type: "image/svg+xml;charset=utf-8"});
+      const url = URL.createObjectURL(svgBlob);
+
+      img.onload = function() {
+        canvas.width = svg.clientWidth;
+        canvas.height = svg.clientHeight;
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+
+        const png = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = "graph.png";
+        link.href = png;
+        link.click();
+      };
+
+      img.src = url;
+    }
+
+    function calculateExpression() {
+      const expr = document.getElementById("calcInput").value;
+      try {
+        const result = math.evaluate(expr);
+        document.getElementById("calcResult").innerHTML = "Результат: <strong>" + result + "</strong>";
+      } catch (e) {
+        document.getElementById("calcResult").textContent = "Ошибка в выражении.";
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@11.11.0/lib/browser/math.min.js"></script>
 </body>
 </html>
