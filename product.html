@@ -5,87 +5,142 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MathGraph Advanced</title>
   <style>
-    /* Общий стиль */
-    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
-    .container { max-width: 1100px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-    h1 { text-align: center; font-size: 36px; color: #333; margin-bottom: 30px; }
-    .tabs { display: flex; justify-content: center; margin-bottom: 20px; }
-    .tab { padding: 10px 20px; margin: 0 10px; cursor: pointer; font-size: 18px; border-radius: 5px; background: #e0e0e0; transition: background 0.3s; }
-    .tab:hover { background: #007bff; color: #fff; }
-    .tab.active { background: #007bff; color: white; }
-    .input-field, .button { width: 100%; padding: 15px; margin-bottom: 10px; font-size: 18px; border: 1px solid #ddd; border-radius: 5px; }
-    .button { background-color: #007bff; color: white; border: none; cursor: pointer; }
-    .button:hover { background-color: #0056b3; }
+    body { margin: 0; font-family: sans-serif; background: #f2f2f2; color: #222; }
+    .container { max-width: 1000px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    h1 { text-align: center; margin-bottom: 20px; }
+    .tabs { display: flex; flex-wrap: wrap; margin-bottom: 20px; }
+    .tab { flex: 1; padding: 10px; text-align: center; background: #eee; cursor: pointer; border: 1px solid #ccc; min-width: 150px; }
+    .tab.active { background: #007bff; color: #fff; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .input-field, .button { margin: 10px 0; padding: 10px; font-size: 16px; width: 100%; box-sizing: border-box; }
+    .button { background: #007bff; color: #fff; border: none; cursor: pointer; }
+    .button:hover { background: #0056b3; }
     .grid-bg { background-image: linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px); background-size: 20px 20px; }
-    #plot { width: 100%; height: 400px; border-radius: 8px; background-color: #fff; border: 1px solid #ddd; }
-    .intro { text-align: center; font-size: 18px; color: #666; margin-bottom: 30px; }
-    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .feature { padding: 15px; background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
-    .feature h3 { font-size: 24px; color: #007bff; }
-    .feature p { font-size: 16px; color: #555; }
-
-    /* Мобильная адаптивность */
-    @media (max-width: 768px) {
-      .tabs { flex-direction: column; }
-      .tab { margin-bottom: 10px; }
-      .features { grid-template-columns: 1fr; }
-    }
+    #plot { width: 100%; height: 500px; border: 1px solid #ccc; border-radius: 8px; }
+    .result { padding: 10px; background: #e9ecef; border-radius: 6px; margin-top: 10px; }
+    .history { margin-top: 20px; font-size: 14px; background: #f9f9f9; padding: 10px; border-radius: 6px; }
+    .history h3 { margin-top: 0; }
+    .calc-buttons { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; }
+    .calc-buttons button { padding: 10px; font-size: 16px; }
   </style>
 </head>
 <body>
-
   <div class="container">
     <h1>MathGraph Advanced</h1>
-    <p class="intro">
-      Ваш мощный инструмент для решения математических задач. Построение графиков, решение уравнений и много других возможностей!
-    </p>
-
     <div class="tabs">
       <div class="tab active" onclick="switchTab('calc')">Калькулятор</div>
-      <div class="tab" onclick="switchTab('graph')">Графики</div>
+      <div class="tab" onclick="switchTab('graph')">График</div>
       <div class="tab" onclick="switchTab('solve')">Решение уравнений</div>
     </div>
 
-    <div class="features">
-      <div class="feature">
-        <h3>Калькулятор</h3>
-        <p>Решение математических выражений с поддержкой комплексных чисел, тригонометрии и алгебры.</p>
+    <div id="calc" class="tab-content active">
+      <input id="calcInput" class="input-field" placeholder="Введите выражение, например: 2 + 3 * i">
+      <div class="calc-buttons">
+        <button onclick="appendCalc('1')">1</button>
+        <button onclick="appendCalc('2')">2</button>
+        <button onclick="appendCalc('3')">3</button>
+        <button onclick="appendCalc('+')">+</button>
+        <button onclick="appendCalc('4')">4</button>
+        <button onclick="appendCalc('5')">5</button>
+        <button onclick="appendCalc('6')">6</button>
+        <button onclick="appendCalc('-')">-</button>
+        <button onclick="appendCalc('7')">7</button>
+        <button onclick="appendCalc('8')">8</button>
+        <button onclick="appendCalc('9')">9</button>
+        <button onclick="appendCalc('*')">×</button>
+        <button onclick="appendCalc('0')">0</button>
+        <button onclick="appendCalc('.')">.</button>
+        <button onclick="appendCalc('/')">÷</button>
+        <button onclick="appendCalc('i')">i</button>
+        <button onclick="appendCalc('^')">^</button>
+        <button onclick="appendCalc('(')">(</button>
+        <button onclick="appendCalc(')')">)</button>
+        <button onclick="clearCalc()">C</button>
       </div>
-      <div class="feature">
-        <h3>Графики</h3>
-        <p>Построение графиков для различных функций с возможностью масштабирования и аннотации.</p>
-      </div>
-      <div class="feature">
-        <h3>Решение уравнений</h3>
-        <p>Введение уравнений и получение решений для них, включая квадратные и более сложные уравнения.</p>
+      <button class="button" onclick="evaluateCalc()">Вычислить</button>
+      <div id="calcResult" class="result"></div>
+      <div class="history">
+        <h3>История</h3>
+        <ul id="calcHistory"></ul>
       </div>
     </div>
 
-    <!-- Виджет оплаты -->
-    <div id="payment-widget" class="payment-widget">
-      <h2>Пожалуйста, произведите оплату, чтобы получить доступ к продукту</h2>
-      <iframe src="https://yoomoney.ru/quickpay/fundraise/widget?billNumber=19SJDBQ5L5C.250427&" width="500" height="480" frameborder="0" allowtransparency="true" scrolling="no"></iframe>
-      <p>После успешной оплаты вы будете перенаправлены на страницу с продуктом.</p>
+    <div id="graph" class="tab-content">
+      <input id="graphFunc" class="input-field" placeholder="Введите функцию, например: sin(x)">
+      <button class="button" onclick="plotFunction()">Построить график</button>
+      <div id="plot" class="grid-bg"></div>
     </div>
 
-    <!-- Скрипт для отслеживания успешной оплаты и перенаправления -->
-    <script>
-      window.onload = function() {
-        // Проверяем состояние успешной оплаты
-        const iframe = document.querySelector('iframe');
-        const paymentURL = 'https://yoomoney.ru/fundraise/19SJDBQ5L5C.250427';
-
-        // Предполагаем, что если iframe URL содержит "success", это успешная оплата
-        iframe.onload = function() {
-          if (iframe.src.includes('success')) {
-            window.location.href = 'product.html'; // Перенаправление на страницу с продуктом
-          }
-        };
-      };
-    </script>
+    <div id="solve" class="tab-content">
+      <input id="eqInput" class="input-field" placeholder="Введите уравнение, например: x^2 + 1 = 0">
+      <button class="button" onclick="solveEquation()">Решить уравнение</button>
+      <div id="solveResult" class="result"></div>
+    </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@11.11.0/lib/browser/math.min.js"></script>
+  <script src="https://unpkg.com/function-plot"></script>
+  <script>
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      document.getElementById(tabName).classList.add('active');
+      document.querySelector('.tab[onclick*="' + tabName + '"]').classList.add('active');
+    }
+
+    function appendCalc(value) {
+      document.getElementById('calcInput').value += value;
+    }
+
+    function clearCalc() {
+      document.getElementById('calcInput').value = '';
+    }
+
+    function evaluateCalc() {
+      const input = document.getElementById('calcInput').value;
+      try {
+        const result = math.evaluate(input);
+        document.getElementById('calcResult').innerText = `Результат: ${result.toString()}`;
+        const li = document.createElement('li');
+        li.textContent = `${input} = ${result.toString()}`;
+        document.getElementById('calcHistory').prepend(li);
+      } catch (err) {
+        document.getElementById('calcResult').innerText = `Ошибка: ${err.message}`;
+      }
+    }
+
+    function plotFunction() {
+      const expr = document.getElementById('graphFunc').value;
+      try {
+        functionPlot({
+          target: '#plot',
+          width: document.getElementById('plot').clientWidth,
+          height: 500,
+          grid: true,
+          data: [{ fn: expr, sampler: 'builtIn', graphType: 'polyline' }],
+          xAxis: { label: 'x', domain: [-10, 10] },
+          yAxis: { label: 'y', domain: [-10, 10] }
+        });
+      } catch (e) {
+        alert('Ошибка в выражении функции');
+      }
+    }
+
+    function solveEquation() {
+      const input = document.getElementById('eqInput').value;
+      try {
+        const [left, right] = input.split('=');
+        if (!left || !right) throw new Error("Неверный формат уравнения");
+        const result = math.solve(`${left} - (${right})`, 'x');
+        document.getElementById('solveResult').innerText = `Решение: ${result}`;
+      } catch (err) {
+        document.getElementById('solveResult').innerText = `Ошибка: ${err.message}`;
+      }
+    }
+  </script>
 </body>
 </html>
+
 
 
