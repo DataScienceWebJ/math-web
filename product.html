@@ -1,50 +1,58 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MathGraph | Продукт</title>
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>MathGraph Pro — Продукт</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="light-theme">
   <div class="container">
-    <header>
-      <h1>MathGraph — Продукт</h1>
-      <p>Вы приобрели доступ к MathGraph. Используйте все его возможности для решения математических задач!</p>
-      <button onclick="window.location.href = 'https://yoomoney.ru/quickpay/fundraise/widget?billNumber=19SJDBQ5L5C.250427'">Перейти к оплате</button>
-    </header>
+    <h1>MathGraph Pro — Полная версия</h1>
+    <div class="tabs">
+      <button class="tab" onclick="switchTab('calc')">Калькулятор</button>
+      <button class="tab" onclick="switchTab('graph')">График</button>
+      <button class="tab" onclick="switchTab('equation')">Уравнение</button>
+      <button class="tab" onclick="switchTab('system')">Система</button>
+    </div>
 
-    <section>
-      <h2>Ваш калькулятор и график:</h2>
-      <div id="calc">
-        <input id="calcInput" class="input-field" placeholder="Введите выражение" />
-        <button class="button" onclick="evaluateCalc()">Вычислить</button>
-        <div id="calcResult" class="result"></div>
+    <div id="calc" class="tab-content">
+      <div class="calc-grid">
+        <input id="calcInput" placeholder="Введите выражение">
+        <button onclick="evaluateCalc()">=</button>
       </div>
+      <div id="calcResult" class="result"></div>
+    </div>
 
-      <div id="graph">
-        <input id="graphFunc" class="input-field" placeholder="Введите функцию, например: sin(x)" />
-        <button class="button" onclick="plotFunction()">Построить график</button>
-        <div id="plot" class="grid-bg"></div>
+    <div id="graph" class="tab-content hidden">
+      <input id="graphFunc" placeholder="Функция (например: sin(x))">
+      <div class="row">
+        <input id="xMin" value="-10" placeholder="X min">
+        <input id="xMax" value="10" placeholder="X max">
+        <input id="yMin" value="-10" placeholder="Y min">
+        <input id="yMax" value="10" placeholder="Y max">
       </div>
-      
-      <div id="solve">
-        <input id="eqLeft" class="input-field" placeholder="Левая часть уравнения, например: x^2" />
-        <input id="eqRight" class="input-field" placeholder="Правая часть, например: 4" />
-        <button class="button" onclick="solveEquation()">Решить уравнение</button>
-        <div id="solveResult" class="result"></div>
-      </div>
-    </section>
+      <button onclick="plotFunction()">Построить график</button>
+      <div id="plot" class="plot-area"></div>
+    </div>
 
-    <footer>
-      <p>&copy; 2025 MathGraph. Все права защищены.</p>
-    </footer>
+    <div id="equation" class="tab-content hidden">
+      <input id="eqLeft" placeholder="Левая часть">
+      <input id="eqRight" placeholder="Правая часть">
+      <button onclick="solveEquation()">Решить</button>
+      <div id="solveResult" class="result"></div>
+    </div>
+
+    <div id="system" class="tab-content hidden">
+      <input id="sys1" placeholder="1-е уравнение (пример: x + y = 3)">
+      <input id="sys2" placeholder="2-е уравнение (пример: x - y = 1)">
+      <button onclick="solveSystem()">Решить систему</button>
+      <div id="systemResult" class="result"></div>
+    </div>
   </div>
 
+  <script src="script.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjs@11.11.0/lib/browser/math.min.js"></script>
   <script src="https://unpkg.com/function-plot"></script>
-  <script src="script.js"></script>
 </body>
 </html>
 
